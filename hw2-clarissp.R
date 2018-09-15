@@ -12,6 +12,7 @@ pdf(NULL)
 #Creating variable for arrest data downloaded from the WPRDC 
 play <- read.csv("playingfields.csv")
 play.load <- play %>%
+  # I would take this as an opportunity to remove the rownames column.
   mutate(center_field_distance = as.numeric(center_field_distance),
          goal_post = as.numeric(goal_post),
          council_district = as.factor(council_district),
@@ -120,7 +121,7 @@ server <- function(input, output, session=session) {
       paste("playingfields", Sys.Date(), ".csv", sep="")
     },
     content = function(file) {
-      write.csv(playInput(), file)
+      write.csv(playInput(), file) # or you can set row.names = FALSE in this function so I don't get two rowname columns when downloading
     }
   )
   #Allows for the reset button to reset all the different inputs
