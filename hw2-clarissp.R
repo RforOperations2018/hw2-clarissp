@@ -7,7 +7,7 @@ library(scales)
 library(shinythemes)
 library(stringr)
 
-# pdf(NULL)
+pdf(NULL)
 
 #Creating variable for arrest data downloaded from the WPRDC 
 play <- read.csv("playingfields.csv")
@@ -17,11 +17,6 @@ play.load <- play %>%
          council_district = as.factor(council_district),
          neighborhood = as.factor(neighborhood)
   )
-
-#Converting text variables to numeric variables 
-#play$center_field_distance <- as.numeric(play$center_field_distance) 
-#play$goal_post <- as.numeric(play$goal_post)
-
 
 #Defining UI for application 
 ui <- navbarPage("Pittsburgh Playing Fields NavBar", 
@@ -42,13 +37,14 @@ ui <- navbarPage("Pittsburgh Playing Fields NavBar",
                                           choiceNames = list("True", "False"),
                                           choiceValues = list("True", "False")
                               ),
-                              # Birth Selection
+                              #Allows user to change the range for the center field distance variable 
                               sliderInput(inputId = "center",
                                           label = "Center Field Distance:",
                                           min = min(play.load$center_field_distance, na.rm = T),
                                           max = max(play.load$center_field_distance, na.rm = T),
                                           value = c(min(play.load$center_field_distance, na.rm = T), max(play.load$center_field_distance, na.rm = T)),
                                           step = 10),
+                              #Creates the reset button
                               actionButton("reset", "Reset Filters", icon = icon("refresh"))
                             ),
                             # Output plot
@@ -127,6 +123,7 @@ server <- function(input, output, session=session) {
       write.csv(playInput(), file)
     }
   )
+  #Allows for the reset button to reset all the different inputs
   observeEvent(input$reset, {
     updateSelectInput(session, "council", selected = c("7", "9"))
     updateCheckboxGroupInput(session, "lights", label = NULL, choices = NULL, selected = c("True","False"))
