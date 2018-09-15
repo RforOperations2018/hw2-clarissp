@@ -1,0 +1,8 @@
+"","X_id","id","name","has_lights","park","field_usage","goal_post","infield_type","left_field_distance","center_field_distance","right_field_distance","backstop","neighborhood","council_district","ward","tract","public_works_division","pli_division","police_zone","fire_zone","latitude","longitude"
+"10",39,1249582327,"Gladstone","False","Gladstone Park","Diamond Only",0,"Skinned","250",29,"167",NA,"Hazelwood","5",15,42003562300,3,15,4,"2-12",40.4151142,-79.93869253
+"23",14,1281324044,"Bud Hammer","False","Bud Hammer Park","Diamond Only",0,"Skinned","182",10,"182",NA,"Hazelwood","5",15,42003562900,3,15,4,"2-12",40.42048831,-79.94654735
+"24",15,456911521,"Burgwin","True","Burgwin Park","Rectangular Only",1,"N/A","N/A",52,"N/A",NA,"Hazelwood","5",15,42003562300,3,15,4,"2-13",40.40444837,-79.93733431
+"63",67,1397213066,"Mellon Field  3","False","Mellon Park","Diamond Only",0,"Skinned","192",14,"189",NA,"Shadyside","8",7,42003070800,2,7,4,"3-13",40.45453692,-79.91614241
+"67",85,1632748081,"Ray Miller","False","Blair Street Park","Diamond Only",0,"Grass","197",14,"165",NA,"Hazelwood","5",15,42003562900,3,15,4,"2-13",40.40382385,-79.94566111
+"70",66,1330092478,"Mellon Field  1","True","Mellon Park","Diamond Only",0,"Skinned","367",42,"360",NA,"Shadyside","8",7,42003070800,2,7,4,"3-13",40.45427335,-79.91676889
+"71",68,130126849,"Mellon Field 2","False","Mellon Park","Diamond Only",0,"Skinned","178",13,"179",NA,"Shadyside","8",7,42003070800,2,7,4,"3-13",40.45514826,-79.91536672

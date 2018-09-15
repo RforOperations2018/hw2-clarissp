@@ -7,59 +7,55 @@ library(scales)
 library(shinythemes)
 library(stringr)
 
-pdf(NULL)
+# pdf(NULL)
 
 #Creating variable for arrest data downloaded from the WPRDC 
 play <- read.csv("playingfields.csv")
-play$center_field_distance <- as.numeric(play$center_field_distance) 
+play.load <- play %>%
+  mutate(center_field_distance = as.numeric(center_field_distance),
+         goal_post = as.numeric(goal_post),
+         council_district = as.factor(council_district),
+         neighborhood = as.factor(neighborhood)
+  )
+
+#Converting text variables to numeric variables 
+#play$center_field_distance <- as.numeric(play$center_field_distance) 
+#play$goal_post <- as.numeric(play$goal_post)
+
 
 #Defining UI for application 
 ui <- navbarPage("Pittsburgh Playing Fields NavBar", 
-                 tabPanel("Plot",
+                 tabPanel("Plots",
                           sidebarLayout(
                             sidebarPanel(
                               # Allows for user to select the y-variable for the plot
-                              selectInput(inputId = "y",
-                                          label = "Y-Axis:",
-                                          choices = c("Neighborhood" = "neighborhood",
-                                                      "Council District" = "council_district",
-                                                      "Fire Zone" = "fire_zone",
-                                                      "Field Usage" = "field_usuage",
-                                                      "Infield Type" = "infield_type",
-                                                      "Has Light?" = "has_lights",
-                                                      "Center Field Distance" = "center_field_distance",
-                                                      "Number of Goal Posts" = "goal_post"),
+                              selectInput(inputId = "council",
+                                          label = "Council District:",
+                                          choices = sort(unique(play.load$council_district)),
                                           multiple = TRUE,
                                           selectize = TRUE,
-                                          selected = "council_district"
+                                          selected = c("7", "9")
                                           ),
-                              #Allows user to select the x-variable for the plot 
-                              selectInput(inputId = "x",
-                                          label = "X-Axis:",
-                                          choices = c("Neighborhood" = "neighborhood",
-                                                      "Council District" = "council_district",
-                                                      "Fire Zone" = "fire_zone",
-                                                      "Field Usage" = "field_usuage",
-                                                      "Infield Type" = "infield_type",
-                                                      "Has Light?" = "has_lights",
-                                                      "Center Field Distance" = "center_field_distance",
-                                                      "Number of Goal Posts" = "goal_post"),
-                                          multiple = TRUE,
-                                          selectize = TRUE,
-                                          selected = "center_field_distance"
+                              #Allows user to select true or false for the lights variable 
+                              checkboxGroupInput(inputId = "lights",
+                                          label = "Lights:",
+                                          choiceNames = list("True", "False"),
+                                          choiceValues = list("True", "False")
                               ),
                               # Birth Selection
-                              sliderInput(inputId = "center_field_distance",
+                              sliderInput(inputId = "center",
                                           label = "Center Field Distance:",
-                                          min = min(play$center_field_distance, na.rm = T),
-                                          max = max(play$center_field_distance, na.rm = T),
-                                          value = c(min(play$center_field_distance, na.rm = T), max(play$center_field_distance, na.rm = T)),
+                                          min = min(play.load$center_field_distance, na.rm = T),
+                                          max = max(play.load$center_field_distance, na.rm = T),
+                                          value = c(min(play.load$center_field_distance, na.rm = T), max(play.load$center_field_distance, na.rm = T)),
                                           step = 10),
                               actionButton("reset", "Reset Filters", icon = icon("refresh"))
                             ),
                             # Output plot
                             mainPanel(
-                              plotlyOutput("plot")
+                              plotlyOutput("barplot"),
+                              plotlyOutput("scatterplot"),
+                              plotlyOutput("boxplot")
                             )
                           )
                  ),
@@ -76,31 +72,66 @@ ui <- navbarPage("Pittsburgh Playing Fields NavBar",
 server <- function(input, output, session=session) {
   playInput <- reactive({
     #Allows for the slider input to be reactive 
-    play <- play %>%
-      filter(center_field_distance >= input$center_field_distanceSelect[1] & center_field_distance <= input$center_field_distanceSelect[2])
+    play <- play.load %>%
+      filter(center_field_distance >= input$center[1] & center_field_distance <= input$center[2])
     #Allows for the select input to be reactive 
-    if (length(input$x) > 0 ) {
-      play <- subset(play, council_district %in% input$x)
+    if (length(input$hood) > 0 ) {
+      play <- subset(play, neighborhood %in% input$hood)
     }
-    
+    #Allows for check box input to be reactive 
+    if (length(input$lights) > 0) {
+      play <- subset(play, has_lights %in% input$lights)
+    }
+
     return(play)
   })
-  
-  output$plot <- renderPlotly({
-    ggplot(data = play, aes(x = play$council_district, y =play$center_field_distance)) +
+
+  #Bar plot code
+  output$barplot <- renderPlotly({
+    play <- playInput()
+    ggplot(data = play, aes(x = play$field_usage, y =play$center_field_distance)) +
       geom_bar(stat="identity")
   })
+  #Scatter plot code
+  output$scatterplot <- renderPlotly({
+    play <- playInput()
+    ggplot(data = play) +
+      geom_point(aes(x = play$center_field_distance, y = play$goal_post, color = play$has_lights))
+  })
+  #Box plot code
+  output$boxplot <- renderPlotly({
+    play <- playInput()
+    ggplot(data = play) +
+      geom_boxplot(mapping = aes(x= play$field_usage, y = play$center_field_distance))
+  })
+  #Data table code
   output$table <- DT::renderDataTable({
     play <- playInput()
-    subset(play, select = c("Neighborhood" = "neighborhood",
-               "Council District" = "council_district",
-               "Fire Zone" = "fire_zone",
-               "Field Usage" = "field_usuage",
-               "Infield Type" = "infield_type",
-               "Has Light?" = "has_lights",
-               "Center Field Distance" = "center_field_distance",
-               "Number of Goal Posts" = "goal_post")
+    subset(play, select = c(neighborhood,council_district,fire_zone,field_usage,infield_type,has_lights, center_field_distance,goal_post)
     )
+  })
+  # Updating the URL Bar
+  observe({
+    print(reactiveValuesToList(input))
+    session$doBookmark()
+  })
+  onBookmarked(function(url) {
+    updateQueryString(url)
+  })
+  # Download data in the datatable
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      paste("playingfields", Sys.Date(), ".csv", sep="")
+    },
+    content = function(file) {
+      write.csv(playInput(), file)
+    }
+  )
+  observeEvent(input$reset, {
+    updateSelectInput(session, "council", selected = c("7", "9"))
+    updateCheckboxGroupInput(session, "lights", label = NULL, choices = NULL, selected = c("True","False"))
+    updateSliderInput(session, "center", value = c(min(play.load$center_field_distance, na.rm = T), max(play.load$center_field_distance, na.rm = T)))
+    showNotification("You have successfully reset the filters", type = "message")
   })
 }
 
